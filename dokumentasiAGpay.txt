@@ -1,0 +1,95 @@
+Dokumentasi API
+Dokumentasi lengkap API AutoGoPay. Generate QRIS dinamis, monitoring real-time, dan webhook otomatis.
+
+Base URL
+https://v1-gateway.autogopay.site
+
+Autentikasi
+Semua request memerlukan API Key via header Authorization dengan format Bearer Token.
+
+API KEY ANDA
+agp_9b7c34a8953e3d0651e7b7a79ef69281c40b70ec82f9dae0c3b76811938cd56b
+
+HTTP
+Authorization: Bearer agp_9b7c34a8953e3d0651e7b7a79ef69281c40b70ec82f9dae0c3b76811938cd56b
+
+Daftar Transaksi
+Ambil daftar transaksi terbaru.
+
+POST /transactions
+
+cURL Example :
+
+{
+  "success": true,
+  "data": {
+    "transactions": [
+      {
+        "id": "TRX-001",
+        "time": "2024-03-18 15:16:33",
+        "amount": 50000,
+        "currency": "IDR",
+        "payment_type": "qris",
+        "status": "settlement",
+        "issuer": "gopay"
+      }
+    ]
+  }
+}
+
+Generate QRIS
+Buat transaksi QRIS baru. Order ID di-generate otomatis. Response termasuk checkout_url yang bisa dikirim ke pelanggan sebagai link pembayaran.
+
+POST /qris/generate
+
+Request Body
+
+{
+  "amount": 10000
+}
+
+
+cURL Example 
+
+Parameter
+amount	integer	wajib	Jumlah dalam IDR (1 - 10.000.000)
+
+{
+  "success": true,
+  "message": "QRIS created successfully",
+  "data": {
+    "transaction_id": "53bc6ed2-441d-4bd0-bc39-11fdfff5fedb",
+    "order_id": "AUTOGOPAY-1774618440-2411",
+    "amount": 10000,
+    "transaction_status": "pending",
+    "qr_string": "00020101021226610014COM.GO-JEK.WWW...",
+    "qr_url": "https://v1-gateway.autogopay.site/qris/53bc6ed2-441d-4bd0-bc39-11fdfff5fedb/qr-code",
+    "checkout_url": "https://autogopay.site/pay/abc123def456",
+    "transaction_time": "2026-03-27 20:34:00",
+    "expiry_time": "2026-03-27 20:49:00"
+  }
+}
+
+
+Format URL
+https://autogopay.site/pay/<token>
+Token di-generate otomatis dan unik per transaksi.
+
+Status Transaksi
+Cek status pembayaran QRIS.
+
+POST /qris/status
+
+Request Body
+
+{
+  "transaction_id": "your_transaction_id"
+}
+
+cURL Example 
+
+Nilai Status
+pending
+settlement
+expire
+cancel
