@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Hotspot Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #25D366; --bg: #f0f2f5; --card: #ffffff; --text: #111b21; --subtext: #667781; --radius: 8px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; padding-top: 30px; font-size: 14px; }
+        .container { width: 100%; max-width: 450px; padding: 15px; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .brand { font-size: 1.2rem; font-weight: 700; } .brand span { color: var(--primary); }
+        .user-badge { background: white; padding: 4px 10px; border-radius: 15px; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 6px; }
+        
+        .card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 15px; }
+        h2 { font-size: 1.1rem; margin-bottom: 5px; } p.desc { color: var(--subtext); font-size: 0.8rem; margin-bottom: 15px; }
+        
+        .form-group { margin-bottom: 12px; position: relative; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
+        .pass-toggle { position: absolute; right: 10px; top: 32px; cursor: pointer; color: var(--subtext); }
+        
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px; background: var(--primary); color: white; }
+        .btn-link { background: none; color: var(--primary); text-decoration: underline; border: none; width: 100%; margin-top: 12px; cursor: pointer; font-size: 0.8rem; }
+        
+        .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .pkg-card { background: white; border: 1px solid #eee; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .pkg-card:hover:not(.disabled) { border-color: var(--primary); transform: translateY(-2px); }
+        .pkg-card.disabled { opacity: 0.6; cursor: not-allowed; background: #f9f9f9; }
+        .pkg-name { font-weight: 700; font-size: 0.95rem; } .pkg-price { color: var(--primary); font-size: 0.85rem; font-weight: 600; }
+        .pkg-status { font-size: 0.7rem; color: #ef5350; margin-top: 5px; font-weight: bold; }
+        
+        .h-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--primary); font-size: 0.85rem; }
+        .h-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .h-code { font-family: monospace; font-weight: bold; background: #f0f2f5; padding: 2px 5px; border-radius: 3px; }
+        .h-info { color: var(--subtext); font-size: 0.75rem; } .h-exp { color: #ef5350; font-weight: 500; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; }
+        .big-code { font-size: 1.6rem; font-family: monospace; font-weight: 800; color: var(--primary); margin: 12px 0; }
+        .hidden { display: none !important; }
+        
+        /* QRIS Specific */
+        .qris-container { background: white; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; margin: 10px auto; display: inline-block; }
+        .qris-img { width: 200px; height: 200px; object-fit: contain; display: block; }
+        .timer-text { color: #ef5350; font-weight: bold; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="brand"><i class="fas fa-wifi"></i> HotSpot<span>Pro</span></div>
+        <div id="user-header" class="hidden">
+            <div class="user-badge"><i class="fas fa-user-circle"></i><span id="lbl-username"></span><button onclick="logout()" style="border:none;background:none;color:#ef5350;"><i class="fas fa-sign-out-alt"></i></button></div>
+        </div>
+    </header>
+
+    <section id="view-login" class="card">
+        <h2>Masuk</h2><p class="desc">Masuk untuk membeli paket.</p>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group"><label>Username</label><input type="text" id="login-user" required></div>
+            <div class="form-group"><label>Password</label><input type="password" id="login-pass" required><i class="fas fa-eye pass-toggle" onclick="togglePass('login-pass', this)"></i></div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <button onclick="showView('view-register')" class="btn-link">Daftar akun baru</button>
+    </section>
+
+    <section id="view-register" class="card hidden">
+        <h2>Daftar Member</h2><p class="desc">Buat akun baru.</p>
+        <form onsubmit="handleRegister(event)">
+            <div class="form-group"><label>Username</label><input type="text" id="reg-user" required></div>
+            <div class="form-group"><label>WhatsApp</label><input type="tel" id="reg-wa" placeholder="08..." required></div>
+            <div class="form-group"><label>Password</label><input type="password" id="reg-pass" required><i class="fas fa-eye pass-toggle" onclick="togglePass('reg-pass', this)"></i></div>
+            <button type="submit" class="btn">Daftar</button>
+        </form>
+        <button onclick="showView('view-login')" class="btn-link">Sudah punya akun?</button>
+    </section>
+
+    <section id="view-admin" class="hidden">
+        <div class="card">
+            <h2>Tambah Voucher</h2>
+            <form onsubmit="handleAddVoucher(event)">
+                <div class="form-group"><label>Kode</label><input type="text" id="adm-code" required></div>
+                <div class="form-group"><label>Paket</label>
+                    <select id="adm-label" required>
+                        <option value="12 Jam" data-min="720">12 Jam</option>
+                        <option value="24 Jam" data-min="1440">24 Jam</option>
+                        <option value="7 Hari" data-min="10080">7 Hari</option>
+                        <option value="1 Bulan" data-min="43200">1 Bulan</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Harga</label><input type="number" id="adm-price" required></div>
+                <button type="submit" class="btn">Simpan</button>
+            </form>
+        </div>
+        <div class="card"><h2>Stok Tersedia</h2><div id="admin-stats">Memuat...</div></div>
+    </section>
+
+    <section id="view-member" class="hidden">
+        <div class="card" style="background:transparent;box-shadow:none;padding:0;">
+            <h2>Pilih Paket</h2>
+            <div class="package-grid">
+                <div class="pkg-card" id="pkg-12" onclick="buyPackage('12 Jam')"><div class="pkg-name">12 Jam</div><div class="pkg-price" id="price-12">Rp -</div><div class="pkg-status hidden" id="status-12">HABIS</div></div>
+                <div class="pkg-card" id="pkg-24" onclick="buyPackage('24 Jam')"><div class="pkg-name">24 Jam</div><div class="pkg-price" id="price-24">Rp -</div><div class="pkg-status hidden" id="status-24">HABIS</div></div>
+                <div class="pkg-card" id="pkg-7" onclick="buyPackage('7 Hari')"><div class="pkg-name">7 Hari</div><div class="pkg-price" id="price-7">Rp -</div><div class="pkg-status hidden" id="status-7">HABIS</div></div>
+                <div class="pkg-card" id="pkg-30" onclick="buyPackage('1 Bulan')"><div class="pkg-name">1 Bulan</div><div class="pkg-price" id="price-30">Rp -</div><div class="pkg-status hidden" id="status-30">HABIS</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Riwayat Beli</h2>
+            <div id="member-h-list"><div style="text-align:center;padding:10px;color:#999;">Memuat...</div></div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Info / Success -->
+<div id="modal-info" class="modal">
+    <div class="modal-box">
+        <i id="modal-icon" class="fas fa-check-circle" style="font-size:2.5rem;color:var(--primary);margin-bottom:10px;"></i>
+        <h3 id="modal-title">Berhasil!</h3>
+        <p id="modal-msg" style="font-size:0.9rem;color:#666;margin-bottom:10px;">Kode Voucher:</p>
+        <div id="modal-code-display" class="big-code">----</div>
+        <button onclick="closeModal()" class="btn">Tutup</button>
+    </div>
+</div>
+
+<!-- Modal QRIS Payment -->
+<div id="modal-qris" class="modal">
+    <div class="modal-box">
+        <h3>Scan QRIS untuk Bayar</h3>
+        <p style="font-size:0.9rem;margin-top:5px;">Total: <strong id="qris-amount">Rp 0</strong></p>
+        
+        <!-- Container Gambar QRIS -->
+        <div class="qris-container">
+            <img id="qris-image" src="" alt="QRIS Code" class="qris-img" onerror="this.src='https://via.placeholder.com/200?text=QR+Error'">
+        </div>
+
+        <div id="qris-timer" class="timer-text">Menunggu pembayaran...</div>
+        <p style="font-size:0.75rem;color:#888;margin-bottom:15px;">Jangan tutup halaman ini sampai pembayaran selesai.</p>
+        <button onclick="cancelPayment()" class="btn" style="background:#ef5350;">Batal</button>
+    </div>
+</div>
+
+<script>
+    let paymentInterval = null;
+
+    function showView(id) { document.querySelectorAll('section').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+    function togglePass(id, icon) { const i = document.getElementById(id); if(i.type==="password"){i.type="text";icon.classList.replace('fa-eye','fa-eye-slash');}else{i.type="password";icon.classList.replace('fa-eye-slash','fa-eye');} }
+    function formatRupiah(n) { return 'Rp ' + parseInt(n).toLocaleString('id-ID'); }
+    
+    async function handleLogin(e) {
+        e.preventDefault();
+        const u = document.getElementById('login-user').value;
+        const p = document.getElementById('login-pass').value;
+        const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+        const d = await r.json();
+        if(d.success) setupDashboard(d); else alert(d.message);
+    }
+    
+    async function handleRegister(e) {
+        e.preventDefault();
+        const u = document.getElementById('reg-user').value;
+        const w = document.getElementById('reg-wa').value;
+        const p = document.getElementById('reg-pass').value;
+        const r = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,whatsapp:w,password:p}) });
+        const d = await r.json();
+        if(d.success) { alert(d.message); showView('view-login'); } else alert(d.message);
+    }
+    
+    async function logout() { await fetch('/api/logout', {method:'POST'}); location.reload(); }
+    
+    function setupDashboard(u) {
+        document.getElementById('user-header').classList.remove('hidden');
+        document.getElementById('lbl-username').textContent = u.username;
+        if(u.role === 'admin') { showView('view-admin'); loadAdminStats(); }
+        else { showView('view-member'); loadMemberPackages(); loadHistory(); }
+    }
+    
+    // --- ADMIN ---
+    async function handleAddVoucher(e) {
+        e.preventDefault();
+        const c = document.getElementById('adm-code').value;
+        const s = document.getElementById('adm-label');
+        const l = s.value;
+        const m = s.options[s.selectedIndex].getAttribute('data-min');
+        const p = document.getElementById('adm-price').value;
+        const r = await fetch('/api/admin/add-voucher', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c,label:l,minutes:m,price:p}) });
+        const d = await r.json();
+        if(d.success) { alert('Disimpan'); document.getElementById('adm-code').value=''; loadAdminStats(); } else alert(d.message);
+    }
+    
+    async function loadAdminStats() {
+        const r = await fetch('/api/admin/stats');
+        const s = await r.json();
+        let h = '<ul style="list-style:none;">';
+        for(const[k,v] of Object.entries(s)) h += `<li style="padding:5px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${k}</span><b>${v} Stok</b></li>`;
+        h += '</ul>';
+        document.getElementById('admin-stats').innerHTML = h;
+    }
+    
+    // --- MEMBER & PAYMENT ---
+    async function loadMemberPackages() {
+        const r = await fetch('/api/member/packages');
+        const p = await r.json();
+        const map = {'12 Jam':'12','24 Jam':'24','7 Hari':'7','1 Bulan':'30'};
+        for(const[l,i] of Object.entries(p)) {
+            const id = map[l];
+            document.getElementById(`price-${id}`).textContent = formatRupiah(i.price);
+            const card = document.getElementById(`pkg-${id}`);
+            const stat = document.getElementById(`status-${id}`);
+            if(!i.available) { card.classList.add('disabled'); stat.classList.remove('hidden'); }
+            else { card.classList.remove('disabled'); stat.classList.add('hidden'); }
+        }
+    }
+    
+    async function buyPackage(label) {
+        const map = {'12 Jam':'12','24 Jam':'24','7 Hari':'7','1 Bulan':'30'};
+        if(document.getElementById(`pkg-${map[label]}`).classList.contains('disabled')) {
+            showModal('Stok Habis', 'Paket ini sedang kosong.', false); return;
+        }
+        
+        // Initiate Payment
+        const r = await fetch('/api/member/buy', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({label}) });
+        const d = await r.json();
+        
+        if(d.success) {
+            sessionStorage.setItem('active_payment', JSON.stringify(d));
+            showQrisModal(d);
+        } else {
+            alert(d.message || 'Gagal membuat QRIS');
+        }
+    }
+    
+    function showQrisModal(data) {
+        document.getElementById('qris-amount').textContent = formatRupiah(data.amount);
+        
+        // Set Source Gambar
+        const imgEl = document.getElementById('qris-image');
+        imgEl.src = data.qris_url;
+        
+        // Debugging jika gambar rusak
+        imgEl.onerror = function() {
+            console.log("Gagal load gambar dari:", data.qris_url);
+            this.src = "https://via.placeholder.com/200x200?text=QR+Load+Error";
+        };
+
+        document.getElementById('modal-qris').classList.add('active');
+        
+        startTimer(data.expiry_time);
+        
+        if(paymentInterval) clearInterval(paymentInterval);
+        paymentInterval = setInterval(checkPaymentStatus, 3000);
+    }
+    
+    function startTimer(expiryISO) {
+        const el = document.getElementById('qris-timer');
+        const update = () => {
+            const now = new Date().getTime();
+            const exp = new Date(expiryISO).getTime();
+            const dist = exp - now;
+            
+            if(dist < 0) {
+                el.textContent = "QRIS Kadaluarsa";
+                cancelPayment();
+            } else {
+                const m = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((dist % (1000 * 60)) / 1000);
+                el.textContent = `Bayar dalam: ${m}m ${s}s`;
+                requestAnimationFrame(update);
+            }
+        };
+        update();
+    }
+    
+    async function checkPaymentStatus() {
+        const r = await fetch('/api/member/check-payment', { method:'POST' });
+        const d = await r.json();
+        
+        if(d.status === 'success') {
+            clearInterval(paymentInterval);
+            document.getElementById('modal-qris').classList.remove('active');
+            sessionStorage.removeItem('active_payment');
+            showModal('Pembayaran Berhasil!', 'Kode Voucher Anda:', true, d.voucher_code);
+            loadMemberPackages();
+            loadHistory();
+        } else if(d.status === 'expire' || d.status === 'cancel') {
+            cancelPayment();
+        }
+    }
+    
+    function cancelPayment() {
+        clearInterval(paymentInterval);
+        document.getElementById('modal-qris').classList.remove('active');
+        sessionStorage.removeItem('active_payment');
+    }
+    
+    async function loadHistory() {
+        const res = await fetch('/api/member/history');
+        const list = await res.json();
+        const container = document.getElementById('member-h-list');
+        container.innerHTML = '';
+        
+        if(list.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:10px;color:#999;font-size:0.8rem;">Belum ada riwayat</div>';
+            return;
+        }
+        
+        list.forEach(h => {
+            const div = document.createElement('div');
+            div.className = 'h-item';
+            div.innerHTML = `
+                <div class="h-header">
+                    <span class="h-code">${h.code}</span>
+                    <span style="font-weight:600">${formatRupiah(h.price)}</span>
+                </div>
+                <div class="h-info">Paket: ${h.package}</div>
+                <div class="h-info">Beli: ${new Date(h.bought_at).toLocaleString('id-ID')}</div>
+                <div class="h-exp">Exp: ${new Date(h.expired_at).toLocaleString('id-ID')}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    function showModal(title, msg, isSuccess, code='') {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-msg').textContent = msg;
+        document.getElementById('modal-icon').className = isSuccess ? 'fas fa-check-circle' : 'fas fa-times-circle';
+        document.getElementById('modal-icon').style.color = isSuccess ? 'var(--primary)' : '#ef5350';
+        const cd = document.getElementById('modal-code-display');
+        if(code) { cd.textContent = code; cd.classList.remove('hidden'); } else cd.classList.add('hidden');
+        document.getElementById('modal-info').classList.add('active');
+    }
+    function closeModal() { document.getElementById('modal-info').classList.remove('active'); }
+    
+    window.addEventListener('load', async () => {
+        const r = await fetch('/api/me');
+        if(r.ok) { 
+            const u = await r.json(); 
+            setupDashboard(u); 
+            
+            const savedPay = sessionStorage.getItem('active_payment');
+            if(savedPay) {
+                const data = JSON.parse(savedPay);
+                showQrisModal(data);
+            }
+        } else {
+            showView('view-login');
+        }
+    });
+</script>
+</body>
+</html>
