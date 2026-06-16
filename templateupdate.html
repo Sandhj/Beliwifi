@@ -61,7 +61,7 @@
         /* Floating Help Button */
         .help-btn {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
             width: 45px;
             height: 45px;
@@ -538,11 +538,10 @@
             icon.style.color = 'var(--primary)';
             codeArea.classList.remove('hidden');
             document.getElementById('m-voucher-code').textContent = extraData.code;
-            content.innerHTML = `<p class="modal-msg">Paket <b>${extraData.pkg}</b> aktif.<br>Salin kode diatas untuk login WiFi.</p>`;
-            addBtn('Tutup & Salin', 'btn-primary', () => {
-                navigator.clipboard.writeText(extraData.code);
-                closeModal();
-            });
+            content.innerHTML = `<p class="modal-msg">Paket <b>${extraData.pkg}</b> aktif.<br>Silakan gunakan kode diatas untuk login WiFi.</p>`;
+            
+            // UBAHAN: Tombol hanya menutup, tidak menyalin
+            addBtn('Tutup', 'btn-primary', closeModal);
         }
 
         overlay.classList.add('active');
@@ -709,13 +708,7 @@
                 });
                 startPaymentPolling();
             } else {
-                // Update: Jika stok habis karena race condition
-                if(d.message === 'STOK_HABIS') {
-                    showModal('error', 'Maaf!', 'Voucher terakhir baru saja terbeli oleh orang lain. Stok habis.');
-                    loadMemberPackages(); // Refresh tampilan paket
-                } else {
-                    showModal('error', 'Gagal', d.message || 'Tidak dapat membuat QRIS');
-                }
+                showModal('error', 'Gagal', d.message || 'Tidak dapat membuat QRIS');
             }
         } catch(e) { showModal('error', 'Error', 'Gagal koneksi server'); }
     }
