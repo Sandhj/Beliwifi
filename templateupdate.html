@@ -107,7 +107,6 @@
 
         h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
         
-        /* New Description Style */
         p.main-desc { 
             color: var(--text-sub); 
             font-size: 0.85rem; 
@@ -119,7 +118,7 @@
             border-left: 4px solid var(--primary);
         }
 
-        /* --- Forms (No Outline Fix) --- */
+        /* --- Forms --- */
         .form-group { margin-bottom: 16px; position: relative; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
         
@@ -224,6 +223,12 @@
         .h-details { font-size: 0.8rem; color: var(--text-sub); display: flex; flex-direction: column; gap: 4px; }
         .h-exp { color: var(--danger); font-weight: 500; }
 
+        /* --- Admin Table --- */
+        .table-container { overflow-x: auto; }
+        .adm-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+        .adm-table th { text-align: left; color: var(--text-sub); padding: 8px; border-bottom: 1px solid #eee; }
+        .adm-table td { padding: 8px; border-bottom: 1px solid #f5f5f5; }
+
         /* --- Custom Popup (Modal) --- */
         .custom-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -246,7 +251,6 @@
         .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
         .modal-msg { font-size: 0.95rem; color: var(--text-sub); margin-bottom: 20px; line-height: 1.5; }
         
-        /* Help Modal Specifics */
         .help-section { text-align: left; margin-bottom: 15px; background: #f9fafb; padding: 12px; border-radius: 8px; }
         .help-title { font-weight: 700; color: var(--text-main); font-size: 0.9rem; margin-bottom: 5px; display: block; }
         .help-text { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 5px; display: block; }
@@ -348,6 +352,26 @@
             <h2>Status Stok</h2>
             <div id="admin-stats" style="font-size:0.9rem; color:var(--text-sub);">Memuat data...</div>
         </div>
+        
+        <!-- NEW: Admin Transaction History -->
+        <div class="card">
+            <h2><i class="fas fa-history" style="color:var(--secondary)"></i> Riwayat Penjualan</h2>
+            <div class="table-container">
+                <table class="adm-table" id="adm-tx-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>WA</th>
+                            <th>Voucher</th>
+                            <th>Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" style="text-align:center;">Memuat...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </section>
 
     <!-- MEMBER DASHBOARD -->
@@ -357,7 +381,6 @@
             <p class="desc">Paket aktif langsung setelah pembayaran.</p>
             
             <div class="package-grid">
-                <!-- 12 Jam -->
                 <div class="pkg-card" id="pkg-12">
                     <div>
                         <i class="fas fa-clock pkg-icon"></i>
@@ -367,7 +390,6 @@
                     <button class="btn-buy-sm" onclick="confirmBuy('12 Jam')">Beli</button>
                     <div class="pkg-status hidden" id="status-12" style="color:var(--danger); font-size:0.7rem; margin-top:5px;">Habis</div>
                 </div>
-                <!-- 24 Jam -->
                 <div class="pkg-card" id="pkg-24">
                     <div>
                         <i class="fas fa-sun pkg-icon"></i>
@@ -377,7 +399,6 @@
                     <button class="btn-buy-sm" onclick="confirmBuy('24 Jam')">Beli</button>
                     <div class="pkg-status hidden" id="status-24" style="color:var(--danger); font-size:0.7rem; margin-top:5px;">Habis</div>
                 </div>
-                <!-- 7 Hari -->
                 <div class="pkg-card" id="pkg-7">
                     <div>
                         <i class="fas fa-calendar-week pkg-icon"></i>
@@ -387,7 +408,6 @@
                     <button class="btn-buy-sm" onclick="confirmBuy('7 Hari')">Beli</button>
                     <div class="pkg-status hidden" id="status-7" style="color:var(--danger); font-size:0.7rem; margin-top:5px;">Habis</div>
                 </div>
-                <!-- 1 Bulan -->
                 <div class="pkg-card" id="pkg-30">
                     <div>
                         <i class="fas fa-calendar-alt pkg-icon"></i>
@@ -416,19 +436,16 @@
         <h3 id="m-title" class="modal-title">Judul</h3>
         <div id="m-content-area"></div>
         
-        <!-- Area Khusus QRIS -->
         <div id="m-qris-area" class="hidden">
             <img id="m-qris-img" src="" class="qris-img">
             <div id="m-timer" style="color:var(--danger); font-weight:bold; font-size:0.9rem; margin-bottom:15px;"></div>
         </div>
 
-        <!-- Area Kode Voucher -->
         <div id="m-code-area" class="hidden" style="background:#f3f4f6; padding:10px; border-radius:8px; margin-bottom:15px;">
             <div style="font-size:0.8rem; color:var(--text-sub);">Kode Voucher:</div>
             <div id="m-voucher-code" style="font-family:monospace; font-size:1.4rem; font-weight:800; color:var(--text-main); letter-spacing:1px;"></div>
         </div>
 
-        <!-- Tombol Modal -->
         <div id="m-btn-container"></div>
     </div>
 </div>
@@ -436,7 +453,6 @@
 <script>
     let paymentInterval = null;
 
-    // --- NAVIGATION & UI UTILS ---
     function showView(id) { 
         document.querySelectorAll('section').forEach(el => el.classList.add('hidden')); 
         document.getElementById(id).classList.remove('hidden'); 
@@ -460,7 +476,6 @@
         const codeArea = document.getElementById('m-code-area');
         const btnContainer = document.getElementById('m-btn-container');
 
-        // Reset
         qrisArea.classList.add('hidden');
         codeArea.classList.add('hidden');
         btnContainer.innerHTML = '';
@@ -502,10 +517,9 @@
         const codeArea = document.getElementById('m-code-area');
         const btnContainer = document.getElementById('m-btn-container');
 
-        // Reset State
         qrisArea.classList.add('hidden');
         codeArea.classList.add('hidden');
-        content.innerHTML = ''; // Clear custom HTML content
+        content.innerHTML = ''; 
         btnContainer.innerHTML = ''; 
 
         mTitle.textContent = title;
@@ -539,8 +553,6 @@
             codeArea.classList.remove('hidden');
             document.getElementById('m-voucher-code').textContent = extraData.code;
             content.innerHTML = `<p class="modal-msg">Paket <b>${extraData.pkg}</b> aktif.<br>Silakan gunakan kode diatas untuk login WiFi.</p>`;
-            
-            // UBAHAN: Tombol hanya menutup, tidak menyalin
             addBtn('Tutup', 'btn-primary', closeModal);
         }
 
@@ -617,7 +629,11 @@
     function setupDashboard(u) {
         document.getElementById('user-header').classList.remove('hidden');
         document.getElementById('lbl-username').textContent = u.username;
-        if(u.role === 'admin') { showView('view-admin'); loadAdminStats(); }
+        if(u.role === 'admin') { 
+            showView('view-admin'); 
+            loadAdminStats(); 
+            loadAdminTransactions(); // Load riwayat admin
+        }
         else { showView('view-member'); loadMemberPackages(); loadHistory(); }
     }
 
@@ -653,6 +669,37 @@
         document.getElementById('admin-stats').innerHTML = h;
     }
 
+    async function loadAdminTransactions() {
+        const r = await fetch('/api/admin/transactions');
+        const list = await r.json();
+        const tbody = document.querySelector('#adm-tx-table tbody');
+        tbody.innerHTML = '';
+
+        if(list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada transaksi</td></tr>';
+            return;
+        }
+
+        list.forEach(tx => {
+            const date = new Date(tx.bought_at).toLocaleString('id-ID');
+            const row = `
+                <tr>
+                    <td>
+                        <div style="font-weight:600;">${tx.username}</div>
+                        <div style="font-size:0.7rem; color:#888;">${tx.package}</div>
+                    </td>
+                    <td>${tx.whatsapp}</td>
+                    <td>
+                        <div style="font-family:monospace; font-weight:bold;">${tx.voucher_code}</div>
+                        <div style="font-size:0.7rem; color:var(--primary);">${formatRupiah(tx.price)}</div>
+                    </td>
+                    <td style="font-size:0.75rem; color:#666;">${date}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
     // --- MEMBER LOGIC ---
     async function loadMemberPackages() {
         const r = await fetch('/api/member/packages');
@@ -682,7 +729,6 @@
         }
     }
     
-    // STEP 1: Konfirmasi Beli
     function confirmBuy(label) {
         const map = {'12 Jam':'12','24 Jam':'24','7 Hari':'7','1 Bulan':'30'};
         const priceText = document.getElementById(`price-${map[label]}`).textContent;
@@ -692,7 +738,6 @@
         });
     }
 
-    // STEP 2: Proses Generate QRIS
     async function processPayment(label) {
         closeModal(); 
         
@@ -708,7 +753,13 @@
                 });
                 startPaymentPolling();
             } else {
-                showModal('error', 'Gagal', d.message || 'Tidak dapat membuat QRIS');
+                // Jika gagal karena stok habis saat generate
+                if(d.message === 'STOK_HABIS') {
+                    showModal('error', 'Stok Habis', 'Maaf, voucher terakhir baru saja terbeli oleh pengguna lain.');
+                    loadMemberPackages();
+                } else {
+                    showModal('error', 'Gagal', d.message || 'Tidak dapat membuat QRIS');
+                }
             }
         } catch(e) { showModal('error', 'Error', 'Gagal koneksi server'); }
     }
@@ -729,6 +780,11 @@
                     });
                     loadMemberPackages();
                     loadHistory();
+                } else if(d.status === 'failed_stolen') {
+                    clearInterval(paymentInterval);
+                    sessionStorage.removeItem('active_payment');
+                    showModal('error', 'Gagal', 'Voucher terakhir sudah terbeli oleh pengguna lain. Silakan coba paket lain.');
+                    loadMemberPackages();
                 } else if(['expire','cancel'].includes(d.status)) {
                     cancelPayment();
                 }
@@ -771,7 +827,6 @@
         });
     }
     
-    // INIT
     window.addEventListener('load', async () => {
         try {
             const r = await fetch('/api/me');
