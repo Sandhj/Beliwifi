@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, static_folder='.')
-app.secret_key = 'wifi_secret_key_final_anti_race'
+app.secret_key = 'wifi_secret_key_final_lock'
 
 # --- KONFIGURASI PAYMENT GATEWAY (AutoGoPay) ---
 AUTOGOPAY_API_KEY = "agp_9b7c34a8953e3d0651e7b7a79ef69281c40b70ec82f9dae0c3b76811938cd56b"
@@ -174,6 +174,33 @@ def admin_stats():
     conn.close()
     return jsonify(stats)
 
+@app.route('/api/admin/transactions', methods=['GET'])
+def admin_transactions():
+    if session.get('role') != 'admin': return jsonify([]), 403
+    
+    conn = get_db()
+    # Join Transactions dengan Users untuk mendapatkan Username dan WA
+    rows = conn.execute("""
+        SELECT t.voucher_code, t.duration_label, t.price, t.bought_at, 
+               u.username, u.whatsapp
+        FROM transactions t
+        JOIN users u ON t.user_id = u.id
+        ORDER BY t.bought_at DESC
+    """).fetchall()
+    conn.close()
+    
+    result = []
+    for row in rows:
+        result.append({
+            'voucher_code': row['voucher_code'],
+            'package': row['duration_label'],
+            'price': row['price'],
+            'bought_at': row['bought_at'],
+            'username': row['username'],
+            'whatsapp': row['whatsapp']
+        })
+    return jsonify(result)
+
 # --- MEMBER & PAYMENT ROUTES ---
 
 @app.route('/api/member/packages', methods=['GET'])
@@ -191,10 +218,7 @@ def get_packages():
 
 @app.route('/api/member/buy', methods=['POST'])
 def buy_voucher():
-    """
-    Langkah 1: Reservasi Voucher (Anti Race Condition)
-    Database dikunci, voucher diambil dan DIHAPUS dari stok agar tidak bisa dibeli orang lain.
-    """
+    """Langkah 1: Generate QRIS dengan Cek Stok Ketat"""
     if 'user_id' not in session:
         return jsonify({'success': False}), 401
         
@@ -205,108 +229,154 @@ def buy_voucher():
         return jsonify({'success': False}), 400
     
     conn = get_db()
-    try:
-        # LOCK DATABASE
-        conn.execute("BEGIN IMMEDIATE")
-        
-        # Cek stok di dalam lock
-        v = conn.execute("SELECT * FROM vouchers WHERE duration_label = ? LIMIT 1", (label,)).fetchone()
-        
-        if not v:
-            conn.rollback()
-            conn.close()
-            return jsonify({'success': False, 'message': 'STOK_HABIS'}), 404
-            
-        price_sold = v['price']
-        code_to_sell = v['code']
-        
-        # HAPUS VOUCHER DARI STOK (Reservasi Permanen)
-        conn.execute("DELETE FROM vouchers WHERE id = ?", (v['id'],))
-        conn.commit()
+    
+    # 1. Cek Total Stok
+    count_row = conn.execute("SELECT COUNT(*) as cnt FROM vouchers WHERE duration_label = ?", (label,)).fetchone()
+    remaining_stock = count_row['cnt']
+    
+    if remaining_stock < 1:
         conn.close()
+        return jsonify({'success': False, 'message': 'STOK_HABIS'}), 404
 
-        # Simpan data transaksi pending di Session
-        session['pending_transaction'] = {
-            'voucher_code': code_to_sell,
-            'duration_label': label,
-            'price': price_sold,
-            'expiry_time': (datetime.now() + timedelta(minutes=15)).isoformat()
-        }
-
-        # Generate QRIS (Setelah lock dilepas agar responsif)
-        qr_url = ""
-        tx_id = f"TRX-{session['user_id']}-{int(datetime.now().timestamp())}"
+    # 2. LOGIKA ANTI-DOUBLE ORDER STOK TERAKHIR
+    # Jika stok == 1, cek apakah ada user lain yang sedang memegang sesi pending untuk paket ini?
+    # Karena Flask session bersifat per-user, kita tidak bisa langsung tahu sesi user lain.
+    # Solusi: Kita ambil voucher ID tertentu. Jika voucher itu sudah di-assign ke sesi orang lain (via DB lock atau flag), tolak.
+    # Untuk simplifikasi tanpa kolom tambahan di DB:
+    # Kita asumsikan jika stok 1, siapa cepat dia dapat. Tapi untuk mencegah race condition:
+    # Kita akan mencoba mengambil voucher tersebut.
+    
+    v = conn.execute("SELECT * FROM vouchers WHERE duration_label = ? LIMIT 1", (label,)).fetchone()
+    
+    if not v:
+        conn.close()
+        return jsonify({'success': False, 'message': 'STOK_HABIS'}), 404
         
-        try:
-            payload_pg = {
-                "amount": price_sold,
-                "description": f"Voucher WiFi {label}",
-                "reference_id": tx_id
-            }
-            response = requests.post(f"{AUTOGOPAY_BASE_URL}/qris/generate", headers=HEADERS_PG, json=payload_pg, timeout=10)
-            response.raise_for_status()
-            pg_data = response.json().get('data', {})
-            
-            qr_string = pg_data.get('qr_string') or pg_data.get('contents')
-            qr_url_direct = pg_data.get('qr_url') or pg_data.get('qr_image')
-            
-            if qr_string and not qr_url_direct:
-                import urllib.parse
-                qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={urllib.parse.quote(qr_string)}"
-            else:
-                qr_url = qr_url_direct
-                
-            if not qr_url: raise Exception("No QR Data")
+    # Simpan ID voucher yang dipilih di sesi user ini
+    # Jika user lain mencoba buy di milidetik yang sama, mereka mungkin mendapatkan voucher ID yang sama
+    # Namun, saat settlement, hanya yang pertama yang berhasil delete/insert.
+    # Untuk UX yang lebih baik: Kita izinkan generate QRIS, tapi saat check-payment, jika voucher sudah hilang, maka gagal.
+    
+    price_sold = v['price']
+    code_to_sell = v['code']
+    voucher_id = v['id']
+    conn.close()
 
-        except Exception as e:
-            print(f"PG Error: {e}")
-            # Fallback Dummy QRIS
+    expiry_time = (datetime.now() + timedelta(minutes=15)).isoformat()
+    ref_id = f"TRX-{session['user_id']}-{int(datetime.now().timestamp())}"
+
+    qr_url = ""
+    tx_id = ""
+
+    # --- LOGIKA GENERATE QRIS ---
+    try:
+        payload_pg = {
+            "amount": price_sold,
+            "description": f"Voucher WiFi {label}",
+            "reference_id": ref_id
+        }
+        
+        response = requests.post(f"{AUTOGOPAY_BASE_URL}/qris/generate", headers=HEADERS_PG, json=payload_pg, timeout=10)
+        
+        if response.status_code != 200:
+            raise Exception(f"API Error: {response.status_code}")
+            
+        pg_data = response.json()
+        data_content = pg_data.get('data', pg_data) 
+        
+        qr_url = data_content.get('qr_url') or data_content.get('qr_image') or data_content.get('checkout_url')
+        qr_string = data_content.get('qr_string') or data_content.get('contents') 
+        
+        tx_id = data_content.get('transaction_id') or data_content.get('id') or ref_id
+
+        if qr_string and not qr_url:
             import urllib.parse
-            qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DUMMY-PAY-{price_sold}"
-
-        return jsonify({
-            'success': True,
-            'qris_url': qr_url,
-            'checkout_url': qr_url,
-            'amount': price_sold,
-            'expiry_time': session['pending_transaction']['expiry_time'],
-            'transaction_id': tx_id
-        })
+            encoded_qr = urllib.parse.quote(qr_string)
+            qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={encoded_qr}"
+        
+        if not qr_url:
+            raise Exception("No QR Data found in response")
 
     except Exception as e:
-        conn.rollback()
-        conn.close()
-        print(f"Buy Error: {e}")
-        return jsonify({'success': False, 'message': 'Server Error'}), 500
+        print(f"Payment Gateway Error: {e}. Using Dummy Mode.")
+        import urllib.parse
+        dummy_data = f"ID:{ref_id}|AMT:{price_sold}|DESC:Voucher{label}"
+        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={urllib.parse.quote(dummy_data)}"
+        tx_id = f"DUMMY-{ref_id}"
+
+    # Simpan transaksi PENDING di Session
+    # Kita simpan voucher_id juga untuk validasi saat settlement
+    session['pending_transaction'] = {
+        'voucher_id': voucher_id,
+        'voucher_code': code_to_sell,
+        'duration_label': label,
+        'price': price_sold,
+        'pg_transaction_id': tx_id,
+        'expiry_time': expiry_time
+    }
+
+    return jsonify({
+        'success': True,
+        'qris_url': qr_url,
+        'checkout_url': qr_url,
+        'amount': price_sold,
+        'expiry_time': expiry_time,
+        'transaction_id': tx_id
+    })
 
 @app.route('/api/member/check-payment', methods=['POST'])
 def check_payment():
-    """Langkah 2: Cek Status Pembayaran"""
+    """Langkah 2: Polling Status Pembayaran & Finalisasi"""
     if 'user_id' not in session or 'pending_transaction' not in session:
         return jsonify({'status': 'invalid'}), 400
 
     pending_tx = session['pending_transaction']
+    pg_tx_id = pending_tx['pg_transaction_id']
+    voucher_id = pending_tx['voucher_id']
+    voucher_code = pending_tx['voucher_code']
+
+    status = "pending" 
     
-    # SIMULASI SUKSES (Karena kita hapus stok di awal, kita anggap sukses jika user reach endpoint ini)
-    # Di produksi nyata, cek ke API Provider disini.
-    status = "settlement" 
+    if pg_tx_id.startswith("DUMMY"):
+        status = "settlement" 
+    else:
+        try:
+            payload_check = {"transaction_id": pg_tx_id}
+            resp = requests.post(f"{AUTOGOPAY_BASE_URL}/qris/status", headers=HEADERS_PG, json=payload_check, timeout=5)
+            resp_data = resp.json().get('data', {})
+            status = resp_data.get('transaction_status', 'pending')
+        except Exception as e:
+            print(f"Check Status Error: {e}")
+            status = "pending"
 
     if status == 'settlement' or status == 'success':
         conn = get_db()
         try:
-            # Catat ke riwayat
+            # VALIDASI AKHIR: Apakah voucher masih ada?
+            # Jika Member A sudah bayar, voucher terhapus. Member B yang dapat QRIS sama akan gagal disini.
+            v_check = conn.execute("SELECT id FROM vouchers WHERE id = ?", (voucher_id,)).fetchone()
+            
+            if not v_check:
+                # Voucher sudah diambil orang lain
+                session.pop('pending_transaction', None)
+                return jsonify({'status': 'failed_stolen'})
+            
+            # 1. Hapus voucher dari stok
+            conn.execute("DELETE FROM vouchers WHERE id = ?", (voucher_id,))
+            
+            # 2. Catat ke riwayat
             conn.execute("""
                 INSERT INTO transactions (user_id, voucher_code, duration_label, price) 
                 VALUES (?, ?, ?, ?)
             """, (
                 session['user_id'],
-                pending_tx['voucher_code'],
+                voucher_code,
                 pending_tx['duration_label'],
                 pending_tx['price']
             ))
             conn.commit()
             
-            result_code = pending_tx['voucher_code']
+            result_code = voucher_code
             result_pkg = pending_tx['duration_label']
             session.pop('pending_transaction', None)
             
@@ -317,9 +387,14 @@ def check_payment():
             })
         except Exception as e:
             conn.rollback()
+            print(f"DB Error on Settlement: {e}")
             return jsonify({'status': 'error'}), 500
         finally:
             conn.close()
+            
+    elif status in ['expire', 'cancel', 'failed']:
+        session.pop('pending_transaction', None)
+        return jsonify({'status': status})
     else:
         return jsonify({'status': 'pending'})
 
