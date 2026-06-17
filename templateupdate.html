@@ -61,7 +61,7 @@
         /* Floating Help Button */
         .help-btn {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
             width: 45px;
             height: 45px;
@@ -753,12 +753,13 @@
                 });
                 startPaymentPolling();
             } else {
-                // Jika gagal karena stok habis saat generate
+                // Jika gagal karena stok habis ATAU API Error
                 if(d.message === 'STOK_HABIS') {
                     showModal('error', 'Stok Habis', 'Maaf, voucher terakhir baru saja terbeli oleh pengguna lain.');
                     loadMemberPackages();
                 } else {
-                    showModal('error', 'Gagal', d.message || 'Tidak dapat membuat QRIS');
+                    // Pesan error dari backend (misal: Gagal menghubungkan ke Payment Gateway)
+                    showModal('error', 'Transaksi Dibatalkan', d.message || 'Terjadi kesalahan pada sistem pembayaran.');
                 }
             }
         } catch(e) { showModal('error', 'Error', 'Gagal koneksi server'); }
