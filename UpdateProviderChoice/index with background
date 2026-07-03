@@ -463,7 +463,7 @@
         <!-- Step 1: Pilih Provider (Modern Cards) -->
         <div id="step-provider" class="card">
             <h2>Pilih Provider Wifi</h2>
-            <p class="desc">Silakan pilih provider jaringan Anda:</p>
+            
             <div class="provider-grid" id="provider-list">
                 <!-- List Provider akan dimuat disini via JS -->
                 <div style="text-align:center; color:#999; padding:20px; margin:10px;">Memuat provider...</div>
