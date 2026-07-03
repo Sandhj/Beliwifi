@@ -1,1 +1,1 @@
-<pre><code>https://raw.githubusercontent.com/Sandhj/Beliwifi/refs/heads/main/UpdateProviderChoice/index.html && https://raw.githubusercontent.com/Sandhj/Beliwifi/refs/heads/main/UpdateProviderChoice/app.py</code></pre>
+<pre><code>wget https://raw.githubusercontent.com/Sandhj/Beliwifi/refs/heads/main/UpdateProviderChoice/index.html && https://raw.githubusercontent.com/Sandhj/Beliwifi/refs/heads/main/UpdateProviderChoice/app.py</code></pre>
