@@ -409,9 +409,9 @@
                 <div class="form-group">
                     <label>Pilih Paket</label>
                     <select id="adm-label" required>
-                        <option value="6 Jam" data-min="720">12 Jam</option>
-                        <option value="12 Jam" data-min="1440">24 Jam</option>
-                        <option value="24 Jam" data-min="2880">7 Hari</option>
+                        <option value="6 Jam" data-min="720">6 Jam</option>
+                        <option value="12 Jam" data-min="1440">12 Jam</option>
+                        <option value="24 Jam" data-min="2880">24 jam</option>
                         <option value="7 Hari" data-min="10080">7 Hari</option>
                         <option value="1 Bulan" data-min="43200">1 Bulan</option>
                     </select>
