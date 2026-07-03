@@ -1,3 +1,5 @@
+
+
 import sqlite3
 import requests
 import json
@@ -21,6 +23,7 @@ ADMIN_WA = "082292615651"
 
 # Konfigurasi Paket Tetap (Durasi)
 PACKAGES = {
+    "6 Jam": {"minutes": 360, "default_price": 3000},
     "12 Jam": {"minutes": 720, "default_price": 10000},
     "24 Jam": {"minutes": 1440, "default_price": 20000},
     "7 Hari": {"minutes": 10080, "default_price": 50000},
