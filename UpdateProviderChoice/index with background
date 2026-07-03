@@ -409,8 +409,9 @@
                 <div class="form-group">
                     <label>Pilih Paket</label>
                     <select id="adm-label" required>
-                        <option value="12 Jam" data-min="720">12 Jam</option>
-                        <option value="24 Jam" data-min="1440">24 Jam</option>
+                        <option value="6 Jam" data-min="720">12 Jam</option>
+                        <option value="12 Jam" data-min="1440">24 Jam</option>
+                        <option value="24 Jam" data-min="2880">7 Hari</option>
                         <option value="7 Hari" data-min="10080">7 Hari</option>
                         <option value="1 Bulan" data-min="43200">1 Bulan</option>
                     </select>
@@ -465,7 +466,7 @@
             <p class="desc">Silakan pilih provider jaringan Anda:</p>
             <div class="provider-grid" id="provider-list">
                 <!-- List Provider akan dimuat disini via JS -->
-                <div style="text-align:center; color:#999; padding:20px;">Memuat provider...</div>
+                <div style="text-align:center; color:#999; padding:20px; margin:10px;">Memuat provider...</div>
             </div>
         </div>
 
@@ -917,6 +918,7 @@
             
             // Icons mapping
             const icons = {
+                '6 Jam': 'fa-clock',
                 '12 Jam': 'fa-clock',
                 '24 Jam': 'fa-sun',
                 '7 Hari': 'fa-calendar-week',
