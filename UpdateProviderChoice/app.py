@@ -11,7 +11,7 @@ app = Flask(__name__, static_folder='.')
 app.secret_key = 'wifi_secret_key_dynamic_provider'
 
 # --- KONFIGURASI PAYMENT GATEWAY (AutoGoPay) ---
-AUTOGOPAY_API_KEY = "agp_9b7c34a8953e3d0651e7b7a79ef69281c40b70ec82f9dae0c3b76811938cd56b"
+AUTOGOPAY_API_KEY = "agp_7d80748d1bb3b8da5721a8a44aed6d5fe0ee22ca0143190f83a3d465ab85d642"
 AUTOGOPAY_BASE_URL = "https://v1-gateway.autogopay.site"
 
 HEADERS_PG = {
