@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BeliWifi - F3.Net</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #10b981; /* Emerald Green */
+            --primary-light: #d1fae5;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --bg-overlay: rgba(255, 255, 255, 0.85); /* Overlay putih transparan */
+            
+            /* PERBAIKAN LINK GAMBAR MENJADI RAW GITHUB */
+            --card-bg-url: url('https://raw.githubusercontent.com/Sandhj/Beliwifi/main/UpdateProviderChoice/Background/card_backgrund.png');
+            --main-bg-url: url('https://raw.githubusercontent.com/Sandhj/Beliwifi/main/UpdateProviderChoice/Background/main_background.png');
+            --banner-bg-url: url('https://raw.githubusercontent.com/Sandhj/Beliwifi/main/UpdateProviderChoice/Background/Banner.png');
+            
+            --text-main: #1f2937;
+            --text-sub: #4b5563;
+            --danger: #ef4444;
+            --radius: 16px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            /* Background Utama dengan Overlay */
+            background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), var(--main-bg-url);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            padding: 20px;
+            font-size: 15px;
+        }
+
+        .container { width: 100%; max-width: 480px; position: relative; padding-bottom: 40px; }
+
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 24px; 
+            padding: 0 5px;
+            position: relative;
+            z-index: 10;
+        }
+        .brand { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: var(--primary-dark); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        }
+        .brand i { color: var(--primary); font-size: 1.2rem; }
+        
+        .help-btn {
+            position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px;
+            background: var(--primary); color: white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            cursor: pointer; z-index: 999; transition: transform 0.2s; border: none;
+        }
+        .help-btn:active { transform: scale(0.9); }
+
+        .user-badge { 
+            background: rgba(255, 255, 255, 0.9); padding: 8px 12px; border-radius: 50px; 
+            font-size: 0.85rem; font-weight: 500; box-shadow: var(--shadow); 
+            display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px);
+        }
+        .btn-icon { border: none; background: none; color: var(--text-sub); cursor: pointer; padding: 5px; transition: 0.2s; outline: none; }
+        .btn-icon:hover { color: var(--danger); }
+
+        /* Card dengan Background Custom */
+        .card { 
+            background-color: rgba(255, 255, 255, 0.95);
+            background-image: var(--card-bg-url);
+            background-size: cover;
+            background-position: center;
+            border-radius: var(--radius); 
+            padding: 24px; 
+            box-shadow: var(--shadow); 
+            margin-bottom: 20px; 
+            animation: slideUp 0.4s ease-out;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; color: var(--primary-dark); }
+        
+        p.main-desc { 
+            color: var(--text-sub); font-size: 0.85rem; line-height: 1.6; margin-bottom: 24px; 
+            background: var(--primary-light); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary);
+        }
+
+        .form-group { margin-bottom: 16px; position: relative; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        
+        input, select { 
+            width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 12px; 
+            outline: none; font-size: 1rem; transition: all 0.3s; background: rgba(255,255,255,0.9); appearance: none;
+        }
+        input:focus, select:focus { 
+            border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        
+        .pass-toggle { position: absolute; right: 16px; top: 42px; color: var(--text-sub); cursor: pointer; z-index: 10; }
+
+        .btn { 
+            width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; 
+            display: flex; justify-content: center; align-items: center; gap: 8px; outline: none;
+        }
+        .btn:active { transform: scale(0.98); }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .btn-danger { background: var(--danger); color: white; margin-top: 10px; }
+        .btn-sm { padding: 8px 12px; font-size: 0.85rem; width: auto; }
+        
+        .auth-link { 
+            background: none; border: none; color: var(--primary-dark); text-decoration: none; 
+            font-size: 0.9rem; font-weight: 500; margin-top: 20px; display: block; 
+            text-align: center; cursor: pointer; padding: 10px; transition: color 0.2s;
+        }
+        .auth-link:hover { color: var(--primary); background-color: var(--primary-light); border-radius: 8px; }
+
+        /* --- MODERN PROVIDER CARDS --- */
+        .provider-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 16px; 
+            margin-bottom: 24px; 
+        }
+        .prov-card { 
+            background: rgba(255, 255, 255, 0.9); 
+            border: 1px solid #e5e7eb; 
+            padding: 20px; 
+            border-radius: 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .prov-card:hover { 
+            border-color: var(--primary); 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2); 
+        }
+        .prov-card::before {
+            content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px;
+            background: var(--primary); opacity: 0; transition: 0.3s;
+        }
+        .prov-card:hover::before { opacity: 1; }
+        
+        .prov-icon-box {
+            width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-dark); font-size: 1.2rem; margin-right: 16px;
+        }
+        .prov-info { flex: 1; }
+        .prov-name { font-weight: 700; font-size: 1.1rem; color: var(--text-main); display: block; }
+        .prov-sub { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; display: block; }
+        .prov-arrow { color: #d1d5db; transition: 0.3s; }
+        .prov-card:hover .prov-arrow { color: var(--primary); transform: translateX(4px); }
+
+        /* --- MODERN PACKAGE CARDS --- */
+        .pkg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .pkg-card-select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #f3f4f6;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .pkg-card-select:hover:not(.disabled) {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            background: #fff;
+        }
+        .pkg-card-select.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        .pkg-card-select.disabled {
+            opacity: 0.6;
+            background: #f9fafb;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        .pkg-dur { font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 4px; }
+        .pkg-price-tag { font-size: 0.9rem; color: var(--primary-dark); font-weight: 600; }
+        .pkg-badge { 
+            position: absolute; top: -8px; right: -8px; 
+            background: var(--danger); color: white; 
+            font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; 
+            font-weight: 700;
+        }
+
+        /* Admin Provider List */
+        .admin-prov-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.8); padding: 10px; border-radius: 8px; margin-bottom: 8px;
+            border: 1px solid #eee;
+        }
+
+        /* History & Table */
+        .h-item { 
+            background: rgba(255,255,255,0.9); padding: 16px; border-radius: 12px; margin-bottom: 12px; 
+            border-left: 4px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .h-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .h-code { font-family: monospace; font-weight: 700; font-size: 1rem; color: var(--text-main); background: #f3f4f6; padding: 4px 8px; border-radius: 6px; }
+        .h-price { font-weight: 700; color: var(--primary-dark); }
+        .h-details { font-size: 0.8rem; color: var(--text-sub); display: flex; flex-direction: column; gap: 4px; }
+        .h-exp { color: var(--danger); font-weight: 500; }
+
+        .table-container { overflow-x: auto; }
+        .adm-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+        .adm-table th { text-align: left; color: var(--text-sub); padding: 8px; border-bottom: 1px solid #eee; }
+        .adm-table td { padding: 8px; border-bottom: 1px solid #f5f5f5; }
+
+        /* Modal */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .custom-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .custom-modal-box {
+            background: white; width: 90%; max-width: 340px;
+            border-radius: 20px; padding: 24px; text-align: center;
+            transform: scale(0.8); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 85vh; overflow-y: auto;
+        }
+        .custom-modal-overlay.active .custom-modal-box { transform: scale(1); }
+        
+        .modal-icon { font-size: 3rem; margin-bottom: 16px; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+        .modal-msg { font-size: 0.95rem; color: var(--text-sub); margin-bottom: 20px; line-height: 1.5; }
+        
+        .help-section { text-align: left; margin-bottom: 15px; background: #f9fafb; padding: 12px; border-radius: 8px; }
+        .help-title { font-weight: 700; color: var(--text-main); font-size: 0.9rem; margin-bottom: 5px; display: block; }
+        .help-text { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 5px; display: block; }
+        .help-contact { font-weight: 600; color: var(--primary-dark); font-size: 0.9rem; display: block; margin-top: 5px; }
+
+        .qris-img { width: 200px; height: 200px; object-fit: contain; margin: 0 auto 15px; border: 1px solid #eee; border-radius: 12px; padding: 10px; background: white; }
+        
+        .hidden { display: none !important; }
+
+        /* --- MEMBER BANNER --- */
+        .member-banner {
+            width: 100%;
+            height: 160px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            /* PERBAIKAN LINK BANNER */
+            background-image: var(--banner-bg-url);
+            background-size: cover;
+            background-position: center;
+        }
+        .banner-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 24px;
+        }
+        .banner-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            max-width: 80%;
+        }
+        .banner-sub {
+            color: #d1fae5;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+.action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+.btn-edit { background-color: #ffc107; color: #000; }
+.btn-delete { background-color: #dc3545; color: #fff; }
+
+    </style>
+</head>
+<body>
+
+<button onclick="showHelp()" class="help-btn"><i class="fas fa-question"></i></button>
+
+<div class="container">
+    <header>
+        <div class="brand">
+            <img src="https://raw.githubusercontent.com/Sandhj/Beliwifi/main/UpdateProviderChoice/logo.png" alt="BeliWifi" style="height: 3rem; width: auto;">
+        </div>
+        <div id="user-header" class="hidden">
+            <div class="user-badge">
+                <i class="fas fa-user-circle" style="color:var(--text-sub)"></i>
+                <span id="lbl-username">User</span>
+                <button onclick="logout()" class="btn-icon"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- LOGIN VIEW -->
+    <section id="view-login" class="card">
+        <h2>Selamat Datang</h2>
+        <p class="main-desc">Pembelian Voucher Wifi Otomatis Tanpa Keluar Rumah Cukup Bayar Menggunakan Ewallet/Bank</p>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="login-user" placeholder="Masukkan username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-pass" placeholder="Masukkan password" required>
+                <i class="fas fa-eye pass-toggle" onclick="togglePass('login-pass', this)"></i>
+            </div>
+            <button type="submit" class="btn btn-primary">Masuk Sekarang</button>
+        </form>
+        <button onclick="showView('view-register')" class="auth-link">Belum punya akun? Daftar disini</button>
+    </section>
+
+    <!-- REGISTER VIEW -->
+    <section id="view-register" class="card hidden">
+        <h2>Buat Akun Baru</h2>
+        <p class="main-desc">Daftar gratis untuk membeli voucher.</p>
+        <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="reg-user" placeholder="Pilih username" required>
+            </div>
+            <div class="form-group">
+                <label>Nomor WhatsApp</label>
+                <input type="tel" id="reg-wa" placeholder="08xxxxxxxxxx" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="reg-pass" placeholder="Buat password" required>
+                <i class="fas fa-eye pass-toggle" onclick="togglePass('reg-pass', this)"></i>
+            </div>
+            <button type="submit" class="btn btn-primary">Daftar Akun</button>
+        </form>
+        <button onclick="showView('view-login')" class="auth-link">Sudah punya akun? Login</button>
+    </section>
+
+    <!-- ADMIN DASHBOARD -->
+    <section id="view-admin" class="hidden">
+        <!-- Manage Providers -->
+        <div class="card">
+            <h2><i class="fas fa-server" style="color:var(--secondary)"></i> Kelola Provider</h2>
+            <p class="desc">Tambahkan layanan wifi yang tersedia di daerah Anda.</p>
+            <form onsubmit="handleAddProvider(event)" style="display:flex; gap:10px;">
+                <input type="text" id="new-provider-name" placeholder="Nama Provider (Cth: Wifi RT 05)" required style="flex:1;">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:0; height:48px;">Tambah</button>
+            </form>
+            <div id="admin-provider-list" style="margin-top:15px;">
+                <!-- List Provider -->
+            </div>
+        </div>
+
+        <!-- Add Voucher -->
+        <div class="card">
+            <h2><i class="fas fa-plus-circle" style="color:var(--primary)"></i> Tambah Stok Voucher</h2>
+            <form onsubmit="handleAddVoucher(event)">
+                <div class="form-group">
+                    <label>Kode Voucher</label>
+                    <input type="text" id="adm-code" placeholder="Contoh: VCR-88" required>
+                </div>
+                <div class="form-group">
+                    <label>Pilih Provider</label>
+                    <select id="adm-provider" required>
+                        <option value="">-- Pilih Provider --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Pilih Paket</label>
+                    <select id="adm-label" required>
+                        <option value="6 Jam" data-min="720">6 Jam</option>
+                        <option value="12 Jam" data-min="1440">12 Jam</option>
+                        <option value="24 Jam" data-min="2880">24 jam</option>
+                        <option value="7 Hari" data-min="10080">7 Hari</option>
+                        <option value="1 Bulan" data-min="43200">1 Bulan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Harga Jual (Rp)</label>
+                    <input type="number" id="adm-price" placeholder="Misal: 10000" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Voucher</button>
+            </form>
+        </div>
+
+<!-- MANAJEMEN VOUCHER -->
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2><i class="fas fa-ticket-alt" style="color:var(--secondary)"></i> Manajemen Voucher</h2>
+    </div>
+    
+    <div class="table-container">
+        <table class="adm-table" id="admin-voucher-table">
+            <thead>
+                <tr>
+                    <th>Kode</th>
+                    <th>Provider</th>
+                    <th>Paket</th>
+                    <th>Harga (Rp)</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data akan dimuat di sini oleh JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+        <div class="card">
+            <h2>Status Stok</h2>
+            <div id="admin-stats" style="font-size:0.9rem; color:var(--text-sub);">Memuat data...</div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-history" style="color:var(--secondary)"></i> Riwayat Penjualan</h2>
+            <div class="table-container">
+                <table class="adm-table" id="adm-tx-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Prov</th>
+                            <th>Voucher</th>
+                            <th>Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" style="text-align:center;">Memuat...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- MEMBER DASHBOARD -->
+    <section id="view-member" class="hidden">
+        
+        <!-- Banner Member -->
+        <div class="member-banner">
+            <div class="banner-overlay">
+                <div class="banner-text">Beli dimana saja<br>dan kapan saja</div>
+                <div class="banner-sub">Layanan Beli Wifi Voucher Terpercaya</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Pilih Provider (Modern Cards) -->
+        <div id="step-provider" class="card">
+            <h2>Pilih Provider Wifi</h2>
+            
+            <div class="provider-grid" id="provider-list">
+                <!-- List Provider akan dimuat disini via JS -->
+                <div style="text-align:center; color:#999; padding:20px; margin:10px;">Memuat provider...</div>
+            </div>
+        </div>
+
+        <!-- Step 2: Pilih Paket (Modern Cards) -->
+        <div id="step-package" class="card hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div>
+                    <h2 id="selected-provider-title" style="margin-bottom:4px;">Provider</h2>
+                    <span style="font-size:0.85rem; color:var(--text-sub);">Pilih masa aktif voucher</span>
+                </div>
+                <button onclick="backToProviders()" style="background:#f3f4f6; border:none; width:36px; height:36px; border-radius:50%; color:var(--text-sub); cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fas fa-arrow-left"></i></button>
+            </div>
+            
+            <!-- Grid Paket Modern -->
+            <div class="pkg-grid" id="pkg-grid-container">
+                <!-- Cards will be injected here -->
+            </div>
+
+            <div style="margin-top:24px; text-align:center;">
+                <div style="font-size:0.9rem; color:var(--text-sub); margin-bottom:5px;">Total Pembayaran</div>
+                <div id="pkg-total-display" style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Rp 0</div>
+            </div>
+
+            <button id="btn-proceed-buy" class="btn btn-primary btn-buy-lg" onclick="confirmBuyFromSelect()" disabled style="margin-top:20px; opacity:0.5; pointer-events:none;">Beli Sekarang</button>
+        </div>
+
+        <!-- MEMBER HISTORY TABLE -->
+<div class="card">
+    <h2><i class="fas fa-history" style="color:var(--secondary)"></i> Riwayat Pembelian</h2>
+    <div class="table-container">
+        <table class="adm-table" id="member-tx-table">
+            <thead>
+                <tr>
+                    <th>Kode</th>
+                    <th>Provider - Paket</th>
+                    <th>Harga</th>
+                    <th>Waktu Beli</th>
+                    <th>Expire</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5" style="text-align:center;">Memuat...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    </section>
+</div>
+
+<!-- CUSTOM POPUP MODAL -->
+<div id="custom-modal" class="custom-modal-overlay">
+    <div class="custom-modal-box">
+        <i id="m-icon" class="fas fa-check-circle modal-icon" style="color:var(--primary)"></i>
+        <h3 id="m-title" class="modal-title">Judul</h3>
+        <div id="m-content-area"></div>
+        
+        <div id="m-qris-area" class="hidden">
+            <img id="m-qris-img" src="" class="qris-img">
+            <div id="m-timer" style="color:var(--danger); font-weight:bold; font-size:0.9rem; margin-bottom:15px;"></div>
+        </div>
+
+        <div id="m-code-area" class="hidden" style="background:#f3f4f6; padding:10px; border-radius:8px; margin-bottom:15px;">
+            <div style="font-size:0.8rem; color:var(--text-sub);">Kode Voucher:</div>
+            <div id="m-voucher-code" style="font-family:monospace; font-size:1.4rem; font-weight:800; color:var(--text-main); letter-spacing:1px;"></div>
+        </div>
+
+        <div id="m-btn-container"></div>
+    </div>
+</div>
+
+<script>
+    let paymentInterval = null;
+    let currentProvider = null;
+    let selectedPackageLabel = null;
+    let selectedPackagePrice = 0;
+
+    function showView(id) { 
+        document.querySelectorAll('section').forEach(el => el.classList.add('hidden')); 
+        document.getElementById(id).classList.remove('hidden'); 
+    }
+
+    function togglePass(id, icon) { 
+        const i = document.getElementById(id); 
+        if(i.type==="password"){i.type="text";icon.classList.replace('fa-eye','fa-eye-slash');}
+        else{i.type="password";icon.classList.replace('fa-eye-slash','fa-eye');} 
+    }
+
+    function formatRupiah(n) { return 'Rp ' + parseInt(n).toLocaleString('id-ID'); }
+
+    // --- HELP MODAL ---
+    function showHelp() {
+        const overlay = document.getElementById('custom-modal');
+        const icon = document.getElementById('m-icon');
+        const title = document.getElementById('m-title');
+        const content = document.getElementById('m-content-area');
+        const qrisArea = document.getElementById('m-qris-area');
+        const codeArea = document.getElementById('m-code-area');
+        const btnContainer = document.getElementById('m-btn-container');
+
+        qrisArea.classList.add('hidden');
+        codeArea.classList.add('hidden');
+        btnContainer.innerHTML = '';
+        
+        icon.className = 'fas fa-headset modal-icon';
+        icon.style.color = 'var(--secondary)';
+        title.textContent = 'Pusat Bantuan';
+        
+        content.innerHTML = `
+            <div class="help-section">
+                <span class="help-title">Masalah Pembayaran:</span>
+                <span class="help-text">Tidak muncul Qris, Kode voucher Salah, atau Kode tidak diberikan setelah bayar.</span>
+                <span class="help-contact"><i class="fab fa-whatsapp"></i> Admin WA: 085155208019</span>
+            </div>
+            <div class="help-section">
+                <span class="help-title">Masalah Jaringan:</span>
+                <span class="help-text">Tidak bisa login, voucher logout sendiri, atau masalah koneksi Wifi.</span>
+                <span class="help-contact"><i class="fas fa-phone-alt"></i> Admin: 085197075555</span>
+                <span class="help-text" style="font-size:0.75rem; margin-top:4px;">Atau hubungi kontak di Login Page F3.Net</span>
+            </div>
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn btn-primary';
+        closeBtn.textContent = 'Tutup';
+        closeBtn.onclick = closeModal;
+        btnContainer.appendChild(closeBtn);
+
+        overlay.classList.add('active');
+    }
+
+    // --- GENERIC MODAL SYSTEM ---
+    function showModal(type, title, msg, extraData = {}) {
+        const overlay = document.getElementById('custom-modal');
+        const icon = document.getElementById('m-icon');
+        const mTitle = document.getElementById('m-title');
+        const content = document.getElementById('m-content-area');
+        const qrisArea = document.getElementById('m-qris-area');
+        const codeArea = document.getElementById('m-code-area');
+        const btnContainer = document.getElementById('m-btn-container');
+
+        qrisArea.classList.add('hidden');
+        codeArea.classList.add('hidden');
+        content.innerHTML = ''; 
+        btnContainer.innerHTML = ''; 
+
+        mTitle.textContent = title;
+
+        if (type === 'success') {
+            icon.className = 'fas fa-check-circle modal-icon';
+            icon.style.color = 'var(--primary)';
+            content.innerHTML = `<p class="modal-msg">${msg}</p>`;
+            addBtn('Tutup', 'btn-primary', closeModal);
+        } else if (type === 'error') {
+            icon.className = 'fas fa-times-circle modal-icon';
+            icon.style.color = 'var(--danger)';
+            content.innerHTML = `<p class="modal-msg">${msg}</p>`;
+            addBtn('Coba Lagi', 'btn-primary', closeModal);
+        } else if (type === 'confirm') {
+            icon.className = 'fas fa-question-circle modal-icon';
+            icon.style.color = 'var(--secondary)';
+            content.innerHTML = `<p class="modal-msg">${msg}</p>`;
+            addBtn('Ya, Bayar Sekarang', 'btn-primary', extraData.onConfirm);
+            addBtn('Batal', 'btn-danger', closeModal);
+        } else if (type === 'payment') {
+            icon.className = 'fas fa-qrcode modal-icon';
+            icon.style.color = 'var(--text-main)';
+            qrisArea.classList.remove('hidden');
+            document.getElementById('m-qris-img').src = extraData.qrisUrl;
+            addBtn('Batal Pembayaran', 'btn-danger', cancelPayment);
+            startTimerInModal(extraData.expiry);
+        } else if (type === 'voucher') {
+            icon.className = 'fas fa-ticket-alt modal-icon';
+            icon.style.color = 'var(--primary)';
+            codeArea.classList.remove('hidden');
+            document.getElementById('m-voucher-code').textContent = extraData.code;
+            content.innerHTML = `<p class="modal-msg">Provider: <b>${extraData.provider}</b><br>Paket: <b>${extraData.pkg}</b><br>Silakan gunakan kode diatas untuk login WiFi.</p>`;
+            addBtn('Tutup', 'btn-primary', closeModal);
+        }
+
+        overlay.classList.add('active');
+    }
+
+    function addBtn(text, className, onClick) {
+        const btn = document.createElement('button');
+        btn.className = `btn ${className}`;
+        btn.textContent = text;
+        btn.onclick = onClick;
+        document.getElementById('m-btn-container').appendChild(btn);
+    }
+
+    function closeModal() {
+        document.getElementById('custom-modal').classList.remove('active');
+        if(paymentInterval) clearInterval(paymentInterval);
+    }
+
+    function startTimerInModal(expiryISO) {
+        const el = document.getElementById('m-timer');
+        const update = () => {
+            const now = new Date().getTime();
+            const exp = new Date(expiryISO).getTime();
+            const dist = exp - now;
+            if(dist < 0) {
+                el.textContent = "Waktu Habis";
+                cancelPayment();
+            } else {
+                const m = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((dist % (1000 * 60)) / 1000);
+                el.textContent = `Bayar dalam: ${m}m ${s}s`;
+                requestAnimationFrame(update);
+            }
+        };
+        update();
+    }
+
+    // --- AUTH LOGIC ---
+    async function handleLogin(e) {
+        e.preventDefault();
+        const u = document.getElementById('login-user').value;
+        const p = document.getElementById('login-pass').value;
+        
+        try {
+            const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+            const d = await r.json();
+            if(d.success) setupDashboard(d); 
+            else showModal('error', 'Login Gagal', d.message);
+        } catch(err) { showModal('error', 'Error', 'Gagal terhubung ke server'); }
+    }
+    
+    async function handleRegister(e) {
+        e.preventDefault();
+        const u = document.getElementById('reg-user').value;
+        const w = document.getElementById('reg-wa').value;
+        const p = document.getElementById('reg-pass').value;
+        
+        try {
+            const r = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,whatsapp:w,password:p}) });
+            const d = await r.json();
+            if(d.success) { 
+                showModal('success', 'Berhasil', 'Akun dibuat. Silakan login.'); 
+                setTimeout(() => { showView('view-login'); closeModal(); }, 1500);
+            } else showModal('error', 'Gagal Daftar', d.message);
+        } catch(err) { showModal('error', 'Error', 'Gagal terhubung'); }
+    }
+    
+    async function logout() { 
+        await fetch('/api/logout', {method:'POST'}); 
+        location.reload(); 
+    }
+    
+    function setupDashboard(u) {
+        document.getElementById('user-header').classList.remove('hidden');
+        document.getElementById('lbl-username').textContent = u.username;
+        if(u.role === 'admin') { 
+            showView('view-admin'); 
+            loadAdminProviders();
+            loadAdminStats(); 
+            loadAdminTransactions();
+            loadVouchers();
+        }
+        else { 
+            showView('view-member'); 
+            loadProviders(); // Load providers first
+            loadHistory(); 
+        }
+    }
+
+    // --- ADMIN LOGIC ---
+    
+    // Manage Providers
+    async function loadAdminProviders() {
+        const r = await fetch('/api/admin/providers');
+        const list = await r.json();
+        const container = document.getElementById('admin-provider-list');
+        const selectAdm = document.getElementById('adm-provider');
+        
+        container.innerHTML = '';
+        selectAdm.innerHTML = '<option value="">-- Pilih Provider --</option>';
+        
+        if(list.length === 0) {
+            container.innerHTML = '<div style="color:#999; font-size:0.9rem;">Belum ada provider. Silakan tambah.</div>';
+        }
+        
+        list.forEach(p => {
+            // Add to List View
+            const div = document.createElement('div');
+            div.className = 'admin-prov-item';
+            div.innerHTML = `
+                <span>${p.name}</span>
+                <button onclick="deleteProvider('${p.name}')" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+            
+            // Add to Select Option
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name;
+            selectAdm.appendChild(opt);
+        });
+    }
+    
+    async function handleAddProvider(e) {
+        e.preventDefault();
+        const name = document.getElementById('new-provider-name').value;
+        const r = await fetch('/api/admin/providers/add', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body:JSON.stringify({name}) 
+        });
+        const d = await r.json();
+        if(d.success) {
+            document.getElementById('new-provider-name').value = '';
+            loadAdminProviders();
+        } else {
+            alert(d.message);
+        }
+    }
+    
+    async function deleteProvider(name) {
+        if(!confirm(`Hapus provider "${name}"? Pastikan stok voucher untuk provider ini sudah habis.`)) return;
+        
+        const r = await fetch('/api/admin/providers/delete', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body:JSON.stringify({name}) 
+        });
+        const d = await r.json();
+        if(d.success) {
+            loadAdminProviders();
+        } else {
+            alert(d.message);
+        }
+    }
+
+    async function handleAddVoucher(e) {
+        e.preventDefault();
+        const c = document.getElementById('adm-code').value;
+        const prov = document.getElementById('adm-provider').value;
+        const s = document.getElementById('adm-label');
+        const l = s.value;
+        const m = s.options[s.selectedIndex].getAttribute('data-min');
+        const p = document.getElementById('adm-price').value;
+        
+        if(!prov) { alert('Pilih provider terlebih dahulu'); return; }
+        
+        const r = await fetch('/api/admin/add-voucher', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c, provider:prov, label:l, minutes:m, price:p}) });
+        const d = await r.json();
+        if(d.success) { 
+            showModal('success', 'Sukses', 'Voucher ditambahkan ke stok'); 
+            document.getElementById('adm-code').value=''; 
+            loadAdminStats(); 
+        } else showModal('error', 'Gagal', d.message);
+    }
+    
+    async function loadAdminStats() {
+        const r = await fetch('/api/admin/stats');
+        const stats = await r.json();
+        let html = '';
+        
+        for(const [prov, labels] of Object.entries(stats)) {
+            let hasStock = false;
+            let labelHtml = '';
+            for(const [lbl, count] of Object.entries(labels)) {
+                if(count > 0) {
+                    hasStock = true;
+                    labelHtml += `<div style="font-size:0.8rem; color:#6b7280; display:flex; justify-content:space-between;"><span>${lbl}</span> <b>${count}</b></div>`;
+                }
+            }
+            
+            if(hasStock) {
+                html += `<div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <div style="font-weight:700; color:var(--text-main); margin-bottom:5px;">${prov}</div>
+                    ${labelHtml}
+                </div>`;
+            }
+        }
+        
+        if(!html) html = '<div style="text-align:center; color:#999;">Belum ada stok</div>';
+        document.getElementById('admin-stats').innerHTML = html;
+    }
+
+    async function loadAdminTransactions() {
+        const r = await fetch('/api/admin/transactions');
+        const list = await r.json();
+        const tbody = document.querySelector('#adm-tx-table tbody');
+        tbody.innerHTML = '';
+
+        if(list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada transaksi</td></tr>';
+            return;
+        }
+
+        list.forEach(tx => {
+            const date = new Date(tx.bought_at).toLocaleString('id-ID');
+            const row = `
+                <tr>
+                    <td>
+                        <div style="font-weight:600;">${tx.username}</div>
+                        <div style="font-size:0.7rem; color:#888;">${tx.package}</div>
+                    </td>
+                    <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:0.7rem;">${tx.provider}</span></td>
+                    <td>
+                        <div style="font-family:monospace; font-weight:bold;">${tx.voucher_code}</div>
+                        <div style="font-size:0.7rem; color:var(--primary);">${formatRupiah(tx.price)}</div>
+                    </td>
+                    <td style="font-size:0.75rem; color:#666;">${date}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // --- MEMBER LOGIC (MODERN UI) ---
+    
+    async function loadProviders() {
+        const r = await fetch('/api/member/providers');
+        const providers = await r.json();
+        const container = document.getElementById('provider-list');
+        container.innerHTML = '';
+        
+        if(providers.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Saat ini tidak ada layanan wifi yang tersedia.</div>';
+            return;
+        }
+        
+        providers.forEach(prov => {
+            const div = document.createElement('div');
+            div.className = 'prov-card';
+            div.onclick = () => selectProvider(prov);
+            div.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <div class="prov-icon-box"><i class="fas fa-server"></i></div>
+                    <div class="prov-info">
+                        <span class="prov-name">${prov}</span>
+                        <span class="prov-sub">Klik untuk lihat paket</span>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right prov-arrow"></i>
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    function selectProvider(prov) {
+        currentProvider = prov;
+        document.getElementById('selected-provider-title').textContent = prov;
+        document.getElementById('step-provider').classList.add('hidden');
+        document.getElementById('step-package').classList.remove('hidden');
+        
+        // Reset Selection
+        selectedPackageLabel = null;
+        selectedPackagePrice = 0;
+        updateBuyButton();
+        
+        // Load packages for this provider
+        fetch('/api/member/packages', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({provider: prov})
+        })
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('pkg-grid-container');
+            grid.innerHTML = '';
+            
+            // Icons mapping
+            const icons = {
+                '6 Jam': 'fa-clock',
+                '12 Jam': 'fa-clock',
+                '24 Jam': 'fa-sun',
+                '7 Hari': 'fa-calendar-week',
+                '1 Bulan': 'fa-calendar-alt'
+            };
+
+            for(const [label, info] of Object.entries(data)) {
+                const card = document.createElement('div');
+                card.className = `pkg-card-select ${info.available ? '' : 'disabled'}`;
+                card.onclick = () => {
+                    if(info.available) selectPackage(label, info.price, card);
+                };
+                
+                const iconClass = icons[label] || 'fa-wifi';
+                
+                let badge = info.available ? '' : `<div class="pkg-badge">HABIS</div>`;
+                
+                card.innerHTML = `
+                    ${badge}
+                    <i class="fas ${iconClass}" style="font-size:1.5rem; color:${info.available ? 'var(--primary)' : '#ccc'}; margin-bottom:8px;"></i>
+                    <div class="pkg-dur">${label}</div>
+                    <div class="pkg-price-tag">${info.available ? formatRupiah(info.price) : '-'}</div>
+                `;
+                grid.appendChild(card);
+            }
+        });
+    }
+    
+    function selectPackage(label, price, cardElement) {
+        // Remove active from all
+        document.querySelectorAll('.pkg-card-select').forEach(c => c.classList.remove('active'));
+        // Add active to clicked
+        cardElement.classList.add('active');
+        
+        selectedPackageLabel = label;
+        selectedPackagePrice = price;
+        updateBuyButton();
+    }
+    
+    function updateBuyButton() {
+        const btn = document.getElementById('btn-proceed-buy');
+        const display = document.getElementById('pkg-total-display');
+        
+        if(selectedPackageLabel) {
+            display.textContent = formatRupiah(selectedPackagePrice);
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        } else {
+            display.textContent = 'Rp 0';
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+        }
+    }
+    
+    function backToProviders() {
+        document.getElementById('step-package').classList.add('hidden');
+        document.getElementById('step-provider').classList.remove('hidden');
+        currentProvider = null;
+        selectedPackageLabel = null;
+    }
+    
+    function confirmBuyFromSelect() {
+        if(!selectedPackageLabel || !currentProvider) return;
+        
+        showModal('confirm', 'Konfirmasi Pembelian', `Anda akan membeli paket <b>${selectedPackageLabel}</b> untuk provider <b>${currentProvider}</b>. Lanjutkan?`, {
+            onConfirm: () => processPayment(selectedPackageLabel, currentProvider)
+        });
+    }
+
+    async function processPayment(label, provider) {
+        closeModal(); 
+        
+        try {
+            const r = await fetch('/api/member/buy', { 
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body:JSON.stringify({label, provider}) 
+            });
+            const d = await r.json();
+            
+            if(d.success) {
+                sessionStorage.setItem('active_payment', JSON.stringify({...d, provider}));
+                showModal('payment', 'Scan QRIS', 'Silakan scan QR code di bawah ini.', {
+                    qrisUrl: d.qris_url,
+                    expiry: d.expiry_time
+                });
+                startPaymentPolling();
+            } else {
+                if(d.message === 'STOK_HABIS') {
+                    showModal('error', 'Stok Habis', 'Maaf, voucher terakhir baru saja terbeli.');
+                    loadProviders(); // Refresh list
+                    backToProviders();
+                } else {
+                    showModal('error', 'Transaksi Dibatalkan', d.message || 'Terjadi kesalahan pada sistem pembayaran.');
+                }
+            }
+        } catch(e) { showModal('error', 'Error', 'Gagal koneksi server'); }
+    }
+    
+    async function startPaymentPolling() {
+        if(paymentInterval) clearInterval(paymentInterval);
+        paymentInterval = setInterval(async () => {
+            try {
+                const r = await fetch('/api/member/check-payment', { method:'POST' });
+                const d = await r.json();
+                
+                if(d.status === 'success') {
+                    clearInterval(paymentInterval);
+                    sessionStorage.removeItem('active_payment');
+                    showModal('voucher', 'Pembayaran Berhasil!', '', {
+                        code: d.voucher_code,
+                        pkg: d.package,
+                        provider: d.provider
+                    });
+                    loadProviders(); // Refresh stock
+                    backToProviders();
+                    loadHistory();
+                } else if(d.status === 'failed_stolen') {
+                    clearInterval(paymentInterval);
+                    sessionStorage.removeItem('active_payment');
+                    showModal('error', 'Gagal', 'Voucher terakhir sudah terbeli oleh pengguna lain.');
+                    loadProviders();
+                    backToProviders();
+                } else if(['expire','cancel'].includes(d.status)) {
+                    cancelPayment();
+                }
+            } catch(e) { console.log("Polling error", e); }
+        }, 3000);
+    }
+    
+    function cancelPayment() {
+        clearInterval(paymentInterval);
+        closeModal();
+        showModal('error', 'Dibatalkan', 'Transaksi dibatalkan atau waktu habis.');
+    }
+    
+    async function loadHistory() {
+    const res = await fetch('/api/member/history');
+    const list = await res.json();
+    const tbody = document.querySelector('#member-tx-table tbody');
+    tbody.innerHTML = '';
+
+    if(list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada riwayat pembelian</td></tr>';
+        return;
+    }
+
+    list.forEach(h => {
+        const boughtDate = new Date(h.bought_at).toLocaleDateString('id-ID');
+        const expireTime = new Date(h.expired_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+        const row = `
+            <tr>
+                <td><span class="h-code">${h.code}</span></td>
+                <td>${h.provider} - ${h.package}</td>
+                <td class="h-price">${formatRupiah(h.price)}</td>
+                <td style="font-size:0.75rem; color:#666;">${boughtDate}</td>
+                <td class="h-exp" style="font-size:0.75rem;">${expireTime}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+    
+    window.addEventListener('load', async () => {
+        try {
+            const r = await fetch('/api/me');
+            if(r.ok) { 
+                const u = await r.json(); 
+                setupDashboard(u); 
+                
+                const savedPay = sessionStorage.getItem('active_payment');
+                if(savedPay) {
+                    const data = JSON.parse(savedPay);
+                    showModal('payment', 'Lanjutkan Pembayaran', 'Transaksi tertunda ditemukan.', {
+                        qrisUrl: data.qris_url,
+                        expiry: data.expiry_time
+                    });
+                    startPaymentPolling();
+                }
+            } else {
+                showView('view-login');
+            }
+        } catch(e) { showView('view-login'); }
+    });
+
+// --- FUNGSI UNTUK MEMUAT DAFTAR VOUCHER ---
+async function loadVouchers() {
+    const res = await fetch('/api/admin/vouchers');
+    const vouchers = await res.json();
+    const tbody = document.querySelector('#admin-voucher-table tbody');
+    tbody.innerHTML = '';
+
+    if(vouchers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada voucher</td></tr>';
+        return;
+    }
+
+    vouchers.forEach(v => {
+        // Menggunakan JSON.stringify untuk melewatkan objek ke fungsi edit
+        const row = `
+            <tr>
+                <td><strong>${v.code}</strong></td>
+                <td>${v.provider_name}</td>
+                <td>${v.duration_label} (${v.duration_minutes} menit)</td>
+                <td>${formatRupiah(v.price)}</td>
+                <td>
+                    <button class="action-btn btn-edit" onclick='editVoucher(${JSON.stringify(v)})'>Edit</button>
+                    <button class="action-btn btn-delete" onclick="deleteVoucher(${v.id})">Hapus</button>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+// --- FUNGSI UNTUK MENGEDIT VOUCHER ---
+function editVoucher(voucherData) {
+    // Contoh sederhana menggunakan prompt. 
+    // Dalam aplikasi nyata, sebaiknya gunakan Modal/Popup form.
+    const newPrice = prompt("Masukkan harga baru (Rp):", voucherData.price);
+    if (newPrice !== null && !isNaN(newPrice)) {
+        fetch(`/api/admin/vouchers/${voucherData.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ...voucherData,
+                price: parseInt(newPrice)
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadVouchers(); // Refresh tabel
+                alert('Voucher berhasil diperbarui!');
+            } else {
+                alert('Gagal: ' + data.message);
+            }
+        });
+    }
+}
+
+// --- FUNGSI UNTUK MENGHAPUS VOUCHER ---
+async function deleteVoucher(id) {
+    if(confirm('Yakin ingin menghapus voucher ini?')) {
+        const res = await fetch(`/api/admin/vouchers/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            loadVouchers(); // Refresh tabel
+        } else {
+            alert('Gagal menghapus: ' + data.message);
+        }
+    }
+}
+
+</script>
+</body>
+</html>
