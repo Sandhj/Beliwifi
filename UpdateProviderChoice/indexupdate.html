@@ -1106,6 +1106,7 @@
     
     function cancelPayment() {
         clearInterval(paymentInterval);
+        sessionStorage.removeItem('active_payment');
         closeModal();
         showModal('error', 'Dibatalkan', 'Transaksi dibatalkan atau waktu habis.');
     }
