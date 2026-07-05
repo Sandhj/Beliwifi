@@ -9,7 +9,7 @@ app = Flask(__name__, static_folder='.')
 app.secret_key = 'wifi_secret_key_dynamic_provider'
 
 # --- KONFIGURASI PAYMENT GATEWAY (AutoGoPay) ---
-AUTOGOPAY_API_KEY = "agp_7d80748d1bb3b8da5721a8a44aed6d5fe0ee22ca0143190f83a3d465ab85d642"
+AUTOGOPAY_API_KEY = "agp_0a5754ac03e58a0f5d06cda048a2fb8cd469dded723582512234a6661db682cd"
 AUTOGOPAY_BASE_URL = "https://v1-gateway.autogopay.site"
 
 HEADERS_PG = {
@@ -71,7 +71,7 @@ def init_db():
     
     c.execute("SELECT * FROM users WHERE whatsapp = ?", (ADMIN_WA,))
     if not c.fetchone():
-        admin_pass = generate_password_hash("admin123")
+        admin_pass = generate_password_hash("gK7pQ2zX9")
         c.execute("INSERT INTO users (username, password_hash, whatsapp, role) VALUES (?, ?, ?, ?)",
                   ("Admin", admin_pass, ADMIN_WA, "admin"))
 
